@@ -2,7 +2,7 @@
   "name": "ReMind",
   "short_name": "ReMind",
   "description": "A simple web app to save and retrieve reminders.",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4285F4",
