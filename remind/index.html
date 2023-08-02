@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="./manifest.json">
+  <title>ReMind</title>
+  <style>
+    /* Add your custom CSS styles here */
+  </style>
+</head>
+
+<body>
+  <h1>ReMind</h1>
+
+  <!-- Main content container -->
+  <div class="container">
+    <button id="btnShuffle" onclick="showRandomEntry()">Shuffle</button>
+    <button onclick="showAddEntryForm()">Add</button>
+  </div>
+
+  <!-- Entry display area -->
+  <div id="displayEntry">
+    <p id="displayEntryDate"></p>
+    <p id="displayEntryTitle"></p>
+    <p id="displayEntryDescription"></p>
+  </div>
+
+  <!-- Add Entry Dialog -->
+  <div id="addEntryForm" style="display: none;">
+    <input type="text" id="addEntryTitle" placeholder="Title">
+    <input type="text" id="addEntryDescription" placeholder="Description">
+    <input type="text" id="addEntryTags" placeholder="Enter tags (comma-separated)">
+    <button onclick="saveEntry()">Save</button>
+  </div>
+
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
+</body>
+
+</html>
