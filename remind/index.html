@@ -6,35 +6,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="manifest" href="./manifest.json">
   <title>ReMind</title>
-  <style>
-    /* Add your custom CSS styles here */
-  </style>
+  <link rel="stylesheet" href="./styles.css"> <!-- Import the CSS file -->
 </head>
 
 <body>
-  <h1>ReMind</h1>
-
-  <!-- Main content container -->
-  <div class="container">
-    <button id="btnShuffle" onclick="showRandomEntry()">Shuffle</button>
-    <button onclick="showAddEntryForm()">Add</button>
+  <div class="header">
+    <h1 class="title">ReMind</h1>
+    <div class="button-container">
+      <button id="btnShuffle" class="button" onclick="showRandomEntry()">Shuffle</button>
+      <button class="button" onclick="showAddEntryForm()">Add</button>
+    </div>
   </div>
 
   <!-- Entry display area -->
-  <div id="displayEntry">
-    <p id="displayEntryDate"></p>
-    <p id="displayEntryTitle"></p>
-    <p id="displayEntryDescription"></p>
+  <div id="displayEntry" class="card">
+    <div class="card-content">
+      <h2 id="displayEntryTitle" class="entry-title"></h2>
+      <p id="displayEntryDate" class="entry-date"></p>
+      <p id="displayEntryDescription" class="entry-description"></p>
+      <ul class="tag-list">
+        <li><button class="rounded-button">filter1</button></li>
+        <li><button class="rounded-button">another filter</button></li>
+        <li><button class="rounded-button">favorite tag</button></li>
+      </ul>
+    </div>
   </div>
 
   <!-- Add Entry Dialog -->
-  <div id="addEntryForm" style="display: none;">
+  <div id="addEntryForm" class="card" style="display: none;">
+    <label for="addEntryTitle">Title:</label>
     <input type="text" id="addEntryTitle" placeholder="Title">
+    <label for="addEntryDescription">Description:</label>
     <input type="text" id="addEntryDescription" placeholder="Description">
+    <label for="addEntryTags">Tags:</label>
     <input type="text" id="addEntryTags" placeholder="Enter tags (comma-separated)">
-    <button onclick="saveEntry()">Save</button>
+    <button class="button" onclick="saveEntry()">Save</button>
   </div>
 
+  <script src="./entries.js"></script>
   <script src="./data.js"></script>
   <script src="./app.js"></script>
 </body>

@@ -1,14 +1,3 @@
-// Sample data source for demonstration purposes
-let entries = [
-  {
-    ts: new Date().toISOString().substring("YYYY-MM-DD".length),
-    title: "Remind",
-    description: "",
-    link: "",
-    tags: "",
-  },
-];
-
 loadEntries();
 
 // Function to display a random entry
@@ -20,6 +9,8 @@ function showRandomEntry() {
 function showEntry(index) {
   const displayEntry = entries[index];
 
+  const div = document.getElementById("displayEntry");
+  div.style.display = "block";
   document.getElementById("displayEntryTitle").innerText = displayEntry.title;
   document.getElementById("displayEntryDescription").innerText =
     displayEntry.description;
@@ -66,7 +57,7 @@ function closeAddEntryForm() {
 
 function loadEntries() {
   try {
-    entries = getEntries();
+    console.log(jsonArrayToCsv(entries));
     console.log(entries);
     updateShuffleBtn();
   } catch (e) {

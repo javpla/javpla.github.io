@@ -1,18 +1,13 @@
-function getEntries() {
-  console.log(jsonArrayToCsv(hardcodedEntries));
-  return hardcodedEntries;
-}
-
 function addEntry(ts, title, description, link, tags) {
-  hardcodedEntries.push({
+  entries.push({
     ts,
     title,
     description,
     link,
     tags,
-    i: hardcodedEntries.length,
+    i: entries.length,
   });
-  const newEntry = hardcodedEntries[hardcodedEntries.length - 1];
+  const newEntry = entries[entries.length - 1];
   console.log('added entry: ' + JSON.stringify(newEntry));
   return newEntry;
 }
@@ -39,5 +34,3 @@ function jsonArrayToCsv(jsonArray) {
       .join("\n");
   return csv;
 }
-
-const hardcodedEntries = [];

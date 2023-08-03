@@ -1,0 +1,106 @@
+/* styles.css */
+
+/* Add your custom styles here */
+
+/* Styling for buttons */
+.button {
+  background-color: black; /* Background color for buttons */
+  color: white; /* Text color for buttons */
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+  border-radius: 5px; /* Adding rounded corners to buttons */
+}
+
+/* Styling for rounded buttons in the tag list */
+.rounded-button {
+  background-color: black; /* Background color for rounded buttons */
+  color: white; /* Text color for rounded buttons */
+  padding: 8px 15px;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+  border-radius: 20px; /* Adding more rounded corners to buttons */
+}
+
+/* Styling for the main content container */
+.container {
+  margin-bottom: 20px;
+}
+
+/* Styling for the Add Entry form */
+#addEntryForm {
+  display: none;
+}
+
+#addEntryForm label,
+#addEntryForm input {
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Styling for the displayEntry card */
+.card {
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: lightgray; /* Light gray background color for cards */
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.card-content {
+  position: relative;
+}
+
+.entry-date {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 5px;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.entry-title {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.entry-description {
+  font-size: 16px;
+}
+
+/* Styling for the tag list */
+.tag-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.tag-list li {
+  display: inline-block;
+}
+
+/* Styling for the header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: darkslategray; /* Dark slate gray background color for the header */
+  color: white; /* White text color for the header */
+}
+
+/* Styling for the title */
+.title {
+  font-size: 36px;
+  margin: 0;
+}
+
+/* Styling for the button container */
+.button-container {
+  display: flex;
+}
