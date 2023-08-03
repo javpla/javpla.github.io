@@ -2,6 +2,10 @@
 
 /* Add your custom styles here */
 
+#body {
+  background-color: black;
+}
+
 /* Styling for buttons */
 .button {
   background-color: black; /* Background color for buttons */
@@ -21,7 +25,7 @@
   border: none;
   cursor: pointer;
   margin-right: 10px;
-  border-radius: 20px; /* Adding more rounded corners to buttons */
+  border-radius 20px; /* Adding more rounded corners to buttons */
 }
 
 /* Styling for the main content container */
@@ -29,22 +33,52 @@
   margin-bottom: 20px;
 }
 
-/* Styling for the Add Entry form */
-#addEntryForm {
-  display: none;
+/* Styling for the Add Entry form dialog wrapper */
+.modal-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
 }
 
-#addEntryForm label,
-#addEntryForm input {
-  display: block;
+/* Styling for the Add Entry form dialog */
+#addEntryForm {
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: lightgray; /* Light gray background color for the Add Entry form */
+  max-width: 400px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Styling for wide inputs in the Add Entry form */
+.wide-input {
+  width: 100%;
+  padding: 8px;
   margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid whitesmoke;
 }
 
 /* Styling for the displayEntry card */
 .card {
-  padding: 20px;
+  padding: 50px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid whitesmoke;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: lightgray; /* Light gray background color for cards */
   max-width: 400px;
@@ -103,4 +137,32 @@
 /* Styling for the button container */
 .button-container {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Styling for centering the "Save" button */
+.center-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Styling for the Shuffle button container */
+.shuffle-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Styling for the footer */
+.footer {
+  background-color: darkslategray; /* Dark slate gray background color for the footer */
+  color: white; /* White text color for the footer */
+  text-align: center;
+  padding: 10px 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
 }

@@ -13,7 +13,6 @@
   <div class="header">
     <h1 class="title">ReMind</h1>
     <div class="button-container">
-      <button id="btnShuffle" class="button" onclick="showRandomEntry()">Shuffle</button>
       <button class="button" onclick="showAddEntryForm()">Add</button>
     </div>
   </div>
@@ -33,14 +32,23 @@
   </div>
 
   <!-- Add Entry Dialog -->
-  <div id="addEntryForm" class="card" style="display: none;">
-    <label for="addEntryTitle">Title:</label>
-    <input type="text" id="addEntryTitle" placeholder="Title">
-    <label for="addEntryDescription">Description:</label>
-    <input type="text" id="addEntryDescription" placeholder="Description">
-    <label for="addEntryTags">Tags:</label>
-    <input type="text" id="addEntryTags" placeholder="Enter tags (comma-separated)">
-    <button class="button" onclick="saveEntry()">Save</button>
+  <div id="addEntryFormWrapper" class="modal-wrapper" style="display: none;">
+    <div id="addEntryForm" class="card">
+      <span class="close-btn" onclick="closeAddEntryForm()">&times;</span>
+      <input type="text" id="addEntryTitle" placeholder="Title" class="wide-input"><br>
+      <input type="text" id="addEntryTags" placeholder="Tags (comma-separated)" class="wide-input"><br>
+      <input type="text" id="addEntryDescription" placeholder="Description" class="wide-input"><br>
+      <div class="center-button">
+        <button class="button" onclick="saveEntry()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="shuffle-button-container">
+      <button id="btnShuffle" class="button" onclick="showRandomEntry()">Shuffle</button>
+    </div>
   </div>
 
   <script src="./entries.js"></script>

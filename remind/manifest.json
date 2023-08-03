@@ -4,7 +4,7 @@
   "description": "A simple web app to save and retrieve reminders.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "black",
   "theme_color": "#4285F4",
   "icons": [
     {

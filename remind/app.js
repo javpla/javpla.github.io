@@ -20,7 +20,7 @@ function showEntry(index) {
 
 // Function to show the Add Entry dialog
 function showAddEntryForm() {
-  const dialog = document.getElementById("addEntryForm");
+  const dialog = document.getElementById("addEntryFormWrapper");
   dialog.style.display = "block";
 }
 
@@ -48,7 +48,7 @@ function saveEntry() {
 
 // Function to close the Add Entry dialog
 function closeAddEntryForm() {
-  const dialog = document.getElementById("addEntryForm");
+  const dialog = document.getElementById("addEntryFormWrapper");
   dialog.style.display = "none";
   document.getElementById("addEntryTitle").value = "";
   document.getElementById("addEntryDescription").value = "";
