@@ -14,8 +14,8 @@ function showEntry(index) {
   document.getElementById("displayEntryTitle").innerText = displayEntry.title;
   document.getElementById("displayEntryDescription").innerText =
     displayEntry.description;
-  document.getElementById("displayEntryDate").innerText =
-    displayEntry.ts + ` [${index}]\n`;
+  document.getElementById("displayEntryDate").innerText = displayEntry.ts;
+  document.getElementById("displayEntryIndex").innerText = `[${index}]`;
 }
 
 // Function to show the Add Entry dialog
@@ -37,7 +37,6 @@ function saveEntry() {
     const today = new Date().toISOString().slice(0, 10); // Get the current date in "YYYY-MM-DD" format
     const newEntry = addEntry(today, title, description, tags);
 
-    entries.push(newEntry);
     updateShuffleBtn();
     showEntry(newEntry.i);
     closeAddEntryForm();
@@ -52,7 +51,7 @@ function closeAddEntryForm() {
   dialog.style.display = "none";
   document.getElementById("addEntryTitle").value = "";
   document.getElementById("addEntryDescription").value = "";
-  document.getElementById("addEntryDescription").value = "";
+  document.getElementById("addEntryTags").value = "";
 }
 
 function loadEntries() {
@@ -60,6 +59,7 @@ function loadEntries() {
     console.log(jsonArrayToCsv(entries));
     console.log(entries);
     updateShuffleBtn();
+    showRandomEntry();
   } catch (e) {
     console.error(e);
   }
