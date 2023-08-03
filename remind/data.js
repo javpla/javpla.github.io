@@ -50,13 +50,20 @@ function addEntry(ts, title, description, link, tags) {
   return newEntry;
 }
 
-function importEntriesCsv(csv) {
+function importEntriesCsvBase64(b64) {
+  if (!b64) {
+    console.error(`Invalid import key: ${b64}`);
+    return;
+  }
+  const csv = atob(b64);
   const entriesCsvHeaders = 'ts,title,description,link,tags,i';
   if (!csv.startsWith(entriesCsvHeaders)) {
     console.error(`Invalid CSV headers (${entriesCsvHeaders}): ${csv}`);
     return;
   }
-  entries = csvToJsonArray(csv).push(...entries);
+  const jsonArray = csvToJsonArray(csv);
+  console.log(jsonArray);
+  entries = [...jsonArray, ...entries];
   storeEntries();
 }
 

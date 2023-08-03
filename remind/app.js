@@ -2,6 +2,16 @@ loadEntries();
 updateShuffleBtn();
 showRandomEntry();
 
+function importEntries() {
+  const inputImport = document.getElementById("inputImport")?.value;
+  importEntriesCsvBase64(inputImport);
+  updateShuffleBtn();
+  const importContainer = document.getElementById("importContainer");
+  if (importContainer) {
+    importContainer.style.display = "none";
+  }
+}
+
 // Function to display a random entry
 function showRandomEntry() {
   const randomIndex = Math.floor(Math.random() * getEntries().length);
