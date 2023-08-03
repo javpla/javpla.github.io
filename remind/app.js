@@ -4,7 +4,7 @@ showRandomEntry();
 
 function importEntries() {
   const inputImport = document.getElementById("inputImport")?.value;
-  importEntriesCsvBase64(inputImport);
+  importEntriesFromKey(inputImport);
   updateShuffleBtn();
   const importContainer = document.getElementById("importContainer");
   if (importContainer) {
