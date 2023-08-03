@@ -1,13 +1,18 @@
 loadEntries();
+updateShuffleBtn();
+showRandomEntry();
 
 // Function to display a random entry
 function showRandomEntry() {
-  const randomIndex = Math.floor(Math.random() * entries.length);
+  const randomIndex = Math.floor(Math.random() * getEntries().length);
   showEntry(randomIndex);
 }
 
 function showEntry(index) {
-  const displayEntry = entries[index];
+  const allEntries = getEntries();
+  console.log(allEntries);
+  const displayEntry = allEntries[index];
+  console.log("displaying entry: " + JSON.stringify(displayEntry));
 
   const div = document.getElementById("displayEntry");
   div.style.display = "block";
@@ -26,16 +31,19 @@ function showAddEntryForm() {
 
 // Function to save the new entry
 function saveEntry() {
-  const title = document.getElementById("addEntryTitle")?.value;
-  const description = document.getElementById("addEntryDescription")?.value;
-  const tags = document
+  const addEntryTitle = document.getElementById("addEntryTitle")?.value;
+  const addEntryDescription = document.getElementById("addEntryDescription")?.value;
+  const addEntryTags = document
     .getElementById("addEntryTags")
-    ?.value?.split(",")
-    .map((tag) => tag.trim());
+    ?.value?.split(",");
 
-  if (title && description) {
+  if (addEntryTitle && addEntryDescription) {
     const today = new Date().toISOString().slice(0, 10); // Get the current date in "YYYY-MM-DD" format
-    const newEntry = addEntry(today, title, description, tags);
+    let tags = [];
+    if (addEntryTags.length) {
+      tags.push(...addEntryTags.map((tag) => tag.trim()).filter(tag => tag.length));
+    }
+    const newEntry = addEntry(today, addEntryTitle, addEntryDescription, '', tags);
 
     updateShuffleBtn();
     showEntry(newEntry.i);
@@ -54,18 +62,7 @@ function closeAddEntryForm() {
   document.getElementById("addEntryTags").value = "";
 }
 
-function loadEntries() {
-  try {
-    console.log(jsonArrayToCsv(entries));
-    console.log(entries);
-    updateShuffleBtn();
-    showRandomEntry();
-  } catch (e) {
-    console.error(e);
-  }
-}
-
 function updateShuffleBtn() {
   document.getElementById("btnShuffle").textContent =
-    "Shuffle (" + entries.length + ")";
+    "Shuffle (" + getEntries().length + ")";
 }
