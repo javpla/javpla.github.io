@@ -10,7 +10,6 @@ let entries = [
 ];
 
 function loadEntries() {
-  localStorage.removeItem("entriesCsvBase64");
   const entriesKey = localStorage.getItem("entriesKey");
   console.log("entriesKey: " + entriesKey);
   if (entriesKey) {
