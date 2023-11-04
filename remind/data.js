@@ -86,13 +86,13 @@ function csvToJsonArray(csv) {
   return jsonArray;
 }
 
-function jsonArrayToCsv(jsonArray) {
+function jsonArrayToCsv(jsonArray, separator = '\t') {
   if (!Array.isArray(jsonArray) || jsonArray.length === 0) {
     return "";
   }
   const keys = Object.keys(jsonArray[0]);
   const csv =
-    keys.join(",") +
+    keys.join(separator) +
     "\n" +
     jsonArray
       .map((entry) =>
@@ -103,7 +103,7 @@ function jsonArrayToCsv(jsonArray) {
             }
             return entry[key];
           })
-          .join(",")
+          .join(separator)
       )
       .join("\n");
   return csv;
@@ -126,4 +126,11 @@ function fromBinary(encoded) {
     bytes[i] = binary.charCodeAt(i);
   }
   return String.fromCharCode(...new Uint16Array(bytes.buffer));
+}
+
+async function fetchFromPublicGoogleSheet(spreadsheetId) {
+  // const response = await fetch(`https://spreadsheets.google.com/feeds/cells/${spreadsheetId}/${sheetId}/public/full?alt=json`);
+  const response = await fetch(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?exportFormat=csv`);
+  const csv = await response.text();
+  return csvToJsonArray(csv);
 }

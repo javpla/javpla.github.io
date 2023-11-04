@@ -7,6 +7,7 @@
   <link rel="manifest" href="./manifest.json">
   <title>ReMind</title>
   <link rel="stylesheet" href="./styles.css"> <!-- Import the CSS file -->
+  <script src="https://apis.google.com/js/api.js"></script>
 </head>
 
 <body>
@@ -43,6 +44,13 @@
         <button class="button" onclick="saveEntry()">Save</button>
       </div>
     </div>
+  </div>
+
+    <!-- New <div> element for the text input and button -->
+  <div class="input-container">
+    <input type="text" id="inputRestoreFromGSheet" placeholder="GSheet ID/URL for sync...">
+    <button id="btnRestoreFromGSheet" class="button" onclick="restoreFromGSheet()">Set</button>
+    <button id="btnCopyData" class="button" alt="Copy all entries as CSV" onclick="pbCopyData()">&#128203;</button>
   </div>
 
   <!-- Footer -->

@@ -42,7 +42,9 @@ function showAddEntryForm() {
 // Function to save the new entry
 function saveEntry() {
   const addEntryTitle = document.getElementById("addEntryTitle")?.value;
-  const addEntryDescription = document.getElementById("addEntryDescription")?.value;
+  const addEntryDescription = document.getElementById(
+    "addEntryDescription"
+  )?.value;
   const addEntryTags = document
     .getElementById("addEntryTags")
     ?.value?.split(",");
@@ -51,9 +53,17 @@ function saveEntry() {
     const today = new Date().toISOString().slice(0, 10); // Get the current date in "YYYY-MM-DD" format
     let tags = [];
     if (addEntryTags.length) {
-      tags.push(...addEntryTags.map((tag) => tag.trim()).filter(tag => tag.length));
+      tags.push(
+        ...addEntryTags.map((tag) => tag.trim()).filter((tag) => tag.length)
+      );
     }
-    const newEntry = addEntry(today, addEntryTitle, addEntryDescription, '', tags);
+    const newEntry = addEntry(
+      today,
+      addEntryTitle,
+      addEntryDescription,
+      "",
+      tags
+    );
 
     updateShuffleBtn();
     showEntry(newEntry.i);
@@ -75,4 +85,80 @@ function closeAddEntryForm() {
 function updateShuffleBtn() {
   document.getElementById("btnShuffle").textContent =
     "Shuffle (" + getEntries().length + ")";
+}
+
+function restoreFromGSheet() {
+  const defaultUrl = "https://docs.google.com/spreadsheets/d/1lN5jqNBX_erxzM9UP_u9NU-BeCnLq4KiwD01hHCzkqg/edit?usp=sharing"; // TODO remove default value
+  const idOrUrl = document.getElementById("inputRestoreFromGSheet")?.value ?? defaultUrl;
+  console.log(idOrUrl);
+  console.log(`restoreFromGSheet - ${idOrUrl}`);
+
+  if (!idOrUrl) {
+    alert("Input a Google Sheet ID or URL");
+    document.getElementById("inputRestoreFromGSheet")?.focus();
+    return;
+  }
+
+  const sheetId = getId(idOrUrl);
+  console.log(`setGSheet - using sheet ID: ${sheetId}`);
+  fetchFromPublicGoogleSheet(sheetId).then(entries => {
+    console.log(entries);
+  }).catch(e => {
+    console.error('Failed to fetch GSheetData: ', e);
+  });
+}
+
+function getId(idOrUrl) {
+  if (!idOrUrl.startsWith("http")) {
+    return idOrUrl;
+  }
+  const url = idOrUrl; // eg 'https://docs.google.com/spreadsheets/d/1lN5jqNBX_erxzM9UP_u9NU-BeCnLq4KiwD01hHCzkqg/edit?usp=sharing';
+  const regex = /spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
+  const match = url.match(regex);
+  const sheetId = match?.[1];
+  return sheetId;
+}
+
+function pbCopyData() {
+  const entries = getEntries();
+  const csv = jsonArrayToCsv(entries);
+  copyToClipboard(csv);
+}
+
+function copyToClipboard(csv) {
+  navigator.clipboard.writeText(csv).then(
+    function () {
+      console.log("Copying to clipboard was successful!");
+    },
+    function (err) {
+      console.error("Could not copy text: ", err);
+      fallbackCopyTextToClipboard(csv);
+    }
+  );
+}
+
+function fallbackCopyTextToClipboard(text) {
+  var textArea = document.createElement("textarea");
+  textArea.value = text;
+
+  // Avoid scrolling to bottom
+  textArea.style.top = "0";
+  textArea.style.left = "0";
+  textArea.style.position = "fixed";
+
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+
+  try {
+    var successful = document.execCommand("copy");
+    console.log(
+      `Fallback copying text command was ${successful ? "" : "un"}successful`
+    );
+    console.log("Copied text: " + text);
+  } catch (err) {
+    console.error("Fallback: Oops, unable to copy", err);
+  }
+
+  document.body.removeChild(textArea);
 }
