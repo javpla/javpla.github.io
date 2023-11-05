@@ -88,8 +88,7 @@ function updateShuffleBtn() {
 }
 
 function restoreFromGSheet() {
-  const defaultUrl = "https://docs.google.com/spreadsheets/d/1lN5jqNBX_erxzM9UP_u9NU-BeCnLq4KiwD01hHCzkqg/edit?usp=sharing"; // TODO remove default value
-  const idOrUrl = document.getElementById("inputRestoreFromGSheet")?.value ?? defaultUrl;
+  const idOrUrl = document.getElementById("inputRestoreFromGSheet")?.value;
   console.log(idOrUrl);
   console.log(`restoreFromGSheet - ${idOrUrl}`);
 
@@ -101,8 +100,8 @@ function restoreFromGSheet() {
 
   const sheetId = getId(idOrUrl);
   console.log(`setGSheet - using sheet ID: ${sheetId}`);
-  fetchFromPublicGoogleSheet(sheetId).then(entries => {
-    console.log(entries);
+  fetchFromPublicGoogleSheet(sheetId).then(newEntries => {
+    console.log(newEntries);
   }).catch(e => {
     console.error('Failed to fetch GSheetData: ', e);
   });
@@ -121,7 +120,14 @@ function getId(idOrUrl) {
 
 function pbCopyData() {
   const entries = getEntries();
-  const csv = jsonArrayToCsv(entries);
+  // json to csv escaping commas in each field
+  entries.forEach(e => {
+    Object.keys(e).forEach(k => {
+      e[k] = e[k].replace(/,/g, '\\,');
+    });
+  });
+  console.log('pbCopyData: ', csv);
+  console.log(csv);
   copyToClipboard(csv);
 }
 

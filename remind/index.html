@@ -11,58 +11,57 @@
 </head>
 
 <body>
-  <div class="header">
-    <h1 class="title">ReMind</h1>
-    <div class="button-container">
-      <button class="button" onclick="showAddEntryForm()">Add</button>
-    </div>
-  </div>
+  <header class="app-header">
+    <h1 class="app-title">ReMind</h1>
+    <button id="btnShuffle" class="action-button shuffle" onclick="showRandomEntry()">Shuffle</button>
+    <button class="add-button" onclick="showAddEntryForm()">Add +</button>
+  </header>
 
   <!-- Entry display area -->
-  <div id="displayEntry" class="card">
-    <div class="card-content">
-      <p id="displayEntryIndex" class="entry-index"></p>
-      <p id="displayEntryDate" class="entry-date"></p>
-      <h2 id="displayEntryTitle" class="entry-title"></h2>
-      <p id="displayEntryDescription" class="entry-description"></p>
+  <main class="content">
+    <section id="displayEntry" class="note-card">
+      <div class="note-meta">
+        <span id="displayEntryDate" class="note-date"></span>
+        <span id="displayEntryIndex" class="note-id"></span>
+      </div>
+      <h2 id="displayEntryTitle" class="note-title"></h2>
+      <p id="displayEntryDescription" class="note-description"></p>
       <ul class="tag-list" style="display: none;">
         <li><button class="rounded-button">filter1</button></li>
         <li><button class="rounded-button">another filter</button></li>
         <li><button class="rounded-button">favorite tag</button></li>
       </ul>
-    </div>
-  </div>
+    </section>
+
+    <!-- Data backups -->
+    <section id="backupConfig" class="note-card">
+      <div class="note-actions">
+        <input type="text" id="inputRestoreFromGSheet" placeholder="GSheet ID/URL for sync...">
+        <button id="btnRestoreFromGSheet" class="action-button set" onclick="restoreFromGSheet()">Restore</button>
+      </div>
+    </section>
+  </main>
 
   <!-- Add Entry Dialog -->
   <div id="addEntryFormWrapper" class="modal-wrapper" style="display: none;">
-    <div id="addEntryForm" class="card">
+    <div id="addEntryForm" class="note-card">
       <span class="close-btn" onclick="closeAddEntryForm()">&times;</span>
       <input type="text" id="addEntryTitle" placeholder="Title" class="wide-input"><br>
       <input type="text" id="addEntryTags" placeholder="Tags (comma-separated)" class="wide-input"><br>
       <input type="text" id="addEntryDescription" placeholder="Description" class="wide-input"><br>
-      <div class="center-button">
-        <button class="button" onclick="saveEntry()">Save</button>
+      <div class="note-actions">
+        <button class="action-button" onclick="saveEntry()">Save</button>
       </div>
     </div>
   </div>
 
-    <!-- New <div> element for the text input and button -->
-  <div class="input-container">
-    <input type="text" id="inputRestoreFromGSheet" placeholder="GSheet ID/URL for sync...">
-    <button id="btnRestoreFromGSheet" class="button" onclick="restoreFromGSheet()">Set</button>
-    <button id="btnCopyData" class="button" alt="Copy all entries as CSV" onclick="pbCopyData()">&#128203;</button>
-  </div>
-
   <!-- Footer -->
-  <div class="footer">
-    <div class="shuffle-button-container">
-      <button id="btnShuffle" class="button" onclick="showRandomEntry()">Shuffle</button>
-    </div>
+  <footer class="app-footer">
     <div id="importContainer" class="import-container" style="display: none;">
       <input type="text" id="inputImport">
       <button id="btnImport" class="button" onclick="importEntries()">Import from key</button>
     </div>
-  </div>
+  </footer>
 
   <script src="./data.js"></script>
   <script src="./app.js"></script>
