@@ -4,35 +4,57 @@ let entries = [
     title: "Remind",
     description: "This is a reminder",
     link: "",
-    tags: ['tag1', 'tag2', 'tag3, with commas', 'tag 4'],
+    tags: ["tag1", "tag2", "tag3, with commas", "tag 4"],
     i: 0,
   },
 ];
 
+function storeEntries() {
+  if (entries?.length) {
+    localStorage.setItem("entries", JSON.stringify(entries));
+    // old way using binary
+    const entriesCsv = jsonArrayToCsv(entries);
+    localStorage.setItem("entriesKey", toBinary(entriesCsv));
+  }
+}
+
 function loadEntries() {
-  const entriesKey = localStorage.getItem("entriesKey");
-  console.log("entriesKey: " + entriesKey);
-  if (entriesKey) {
-    const entriesCsv = fromBinary(entriesKey);
-    console.log("entriesCsv: " + entriesCsv);
-    if (entriesCsv?.length) {
-      entries = csvToJsonArray(entriesCsv);
-      return;
-    }
+  const jsonArrayStr = localStorage.getItem("entries");
+  console.log('loadEntries - jsonArrayStr: ', jsonArrayStr);
+  const jsonArray = JSON.parse(jsonArrayStr);
+  console.log('loadEntries - jsonArray: ', jsonArray);
+  console.log('loadEntries - isArray = ', Array.isArray(jsonArray));
+  if (Array.isArray(jsonArray)) {
+    entries = jsonArray;
+    return;
   }
 
-  console.warn("No entries found in localStorage");
+  // old way using binary
+  const entriesKey = localStorage.getItem("entriesKey");
+  console.log("loadEntries - entriesKey: " + entriesKey);
+
+  if (!entriesKey) {
+    console.warn("loadEntries - No entries found in localStorage");
+    return;
+  }
+
+  const entriesCsv = fromBinary(entriesKey);
+  console.log("loadEntries - entriesCsv: " + entriesCsv);
+  entries = csvToJsonArray(entriesCsv);
 }
 
 function getEntries() {
   return entries;
 }
 
-function storeEntries() {
-  if (entries?.length) {
-    const entriesCsv = jsonArrayToCsv(entries);
-    localStorage.setItem("entriesKey", toBinary(entriesCsv));
-  }
+function getTags() {
+  const tags = new Set();
+  entries.forEach((entry) => {
+    entry.tags?.forEach((tag) => {
+      tags.add(tag);
+    });
+  });
+  return [...tags];
 }
 
 function addEntry(ts, title, description, link, tags) {
@@ -56,7 +78,7 @@ function importEntriesFromKey(key) {
     return;
   }
   const csv = fromBinary(key);
-  const entriesCsvHeaders = 'ts,title,description,link,tags,i';
+  const entriesCsvHeaders = "ts,title,description,link,tags,i";
   if (!csv.startsWith(entriesCsvHeaders)) {
     console.error(`Invalid CSV headers (${entriesCsvHeaders}): ${csv}`);
     return;
@@ -86,7 +108,7 @@ function csvToJsonArray(csv) {
   return jsonArray;
 }
 
-function jsonArrayToCsv(jsonArray, separator = '\t') {
+function jsonArrayToCsv(jsonArray, separator = "\t") {
   if (!Array.isArray(jsonArray) || jsonArray.length === 0) {
     return "";
   }
@@ -131,7 +153,9 @@ function fromBinary(encoded) {
 async function fetchFromPublicGoogleSheet(spreadsheetId) {
   // const response = await fetch(`https://spreadsheets.google.com/feeds/cells/${spreadsheetId}/${sheetId}/public/full?alt=json`);
   // const response = await fetch(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?exportFormat=csv`);
-  const response = await fetch(`https://spreadsheets.google.com/feeds/list/${spreadsheetId}/od6/public/values?alt=json`);
+  const response = await fetch(
+    `https://spreadsheets.google.com/feeds/list/${spreadsheetId}/od6/public/values?alt=json`
+  );
   const json = await response.json();
   return json;
 }

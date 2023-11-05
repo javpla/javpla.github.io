@@ -1,6 +1,7 @@
 loadEntries();
 updateShuffleBtn();
 showRandomEntry();
+showAllTags();
 
 function importEntries() {
   const inputImport = document.getElementById("inputImport")?.value;
@@ -25,59 +26,67 @@ function showEntry(index) {
   console.log("displaying entry: " + JSON.stringify(displayEntry));
 
   document.getElementById("displayEntryTitle").innerText = displayEntry.title;
-  document.getElementById("displayEntryDescription").innerText =
-    displayEntry.description;
+  document.getElementById("displayEntryDescription").innerText = displayEntry.description;
   document.getElementById("displayEntryDate").innerText = displayEntry.ts;
   document.getElementById("displayEntryIndex").innerText = `[${index}]`;
 
-  const tagsDiv = document.getElementById("displayEntryTags");
+  const displayedTagsDiv = document.getElementById("displayEntryTags");
+  displayedTagsDiv.innerHTML = ""; // removes all children (buttons)
 
-  displayEntry.tags.forEach(function (tag) {
-    // add <button class="tag-button">example tag</button>
-    const button = document.createElement("button");
-    button.classList.add("tag-button");
-    button.innerText = tag;
-    button.addEventListener("click", function () {
-      addTagFilter(tag);
-    });
-    tagsDiv.appendChild(button);
+  displayEntry.tags?.forEach((tag) => {
+    const button = getTagBtn(tag);
+    displayedTagsDiv.appendChild(button);
   });
 
   const div = document.getElementById("displayEntry");
   div.style.display = "block";
 }
 
-// Function to show the Add Entry dialog
+function showAllTags() {
+  const allTags = getTags().sort();
+  console.log('showTags - ', allTags);
+  const tagsDiv = document.getElementById("tagsDiv");
+  tagsDiv.innerHTML = ""; // removes all children (buttons)
+  allTags.forEach((tag) => {
+    const button = getTagBtn(tag);
+    tagsDiv.appendChild(button);
+  });
+}
+
+function getTagBtn(tag) {
+  // <button class="tag-button">example tag</button>
+  const button = document.createElement("button");
+  button.id = `tag-${tag}`;
+  button.classList.add("tag-button");
+  button.innerText = tag;
+  button.addEventListener("click", () => {
+    toggleTagBtn(button);
+  });
+  return button;
+}
+
+function toggleTagBtn(btn) {
+  btn.classList.toggle("tag-button-selected");
+}
+
 function showAddEntryForm() {
   const dialog = document.getElementById("addEntryFormWrapper");
   dialog.style.display = "block";
 }
 
-// Function to save the new entry
 function saveEntry() {
   const addEntryTitle = document.getElementById("addEntryTitle")?.value;
-  const addEntryDescription = document.getElementById(
-    "addEntryDescription"
-  )?.value;
-  const addEntryTags = document
-    .getElementById("addEntryTags")
-    ?.value?.split(",");
+  const addEntryDescription = document.getElementById("addEntryDescription")?.value;
+  const addEntryTags = document.getElementById("addEntryTags")?.value?.split(",");
 
   if (addEntryTitle && addEntryDescription) {
     const today = new Date().toISOString().slice(0, 10); // Get the current date in "YYYY-MM-DD" format
     let tags = [];
     if (addEntryTags.length) {
-      tags.push(
-        ...addEntryTags.map((tag) => tag.trim()).filter((tag) => tag.length)
-      );
+      tags.push(...addEntryTags.map((tag) => tag.trim()).filter((tag) => tag.length));
     }
-    const newEntry = addEntry(
-      today,
-      addEntryTitle,
-      addEntryDescription,
-      "",
-      tags
-    );
+    const newEntry = addEntry(today, addEntryTitle, addEntryDescription, "", tags);
+    showAllTags();
 
     updateShuffleBtn();
     showEntry(newEntry.i);
@@ -97,8 +106,7 @@ function closeAddEntryForm() {
 }
 
 function updateShuffleBtn() {
-  document.getElementById("btnShuffle").textContent =
-    "Shuffle (" + getEntries().length + ")";
+  document.getElementById("btnShuffle").textContent = "Shuffle (" + getEntries().length + ")";
 }
 
 function restoreFromGSheet() {
@@ -139,11 +147,14 @@ function pbCopyData() {
   // json to csv escaping commas in each field
   entries.forEach((e) => {
     Object.keys(e).forEach((k) => {
-      e[k] = e[k].replace(/,/g, "\\,");
+      if (e[k].replace) {
+        e[k] = e[k].replace(/,/g, "\\,");
+      }
     });
   });
-  console.log("pbCopyData: ", csv);
-  console.log(csv);
+  console.log("pbCopyData - entries:", entries);
+  const csv = jsonArrayToCsv(entries);
+  console.log("pbCopyData - csv:", csv);
   copyToClipboard(csv);
 }
 
@@ -174,9 +185,7 @@ function fallbackCopyTextToClipboard(text) {
 
   try {
     var successful = document.execCommand("copy");
-    console.log(
-      `Fallback copying text command was ${successful ? "" : "un"}successful`
-    );
+    console.log(`Fallback copying text command was ${successful ? "" : "un"}successful`);
     console.log("Copied text: " + text);
   } catch (err) {
     console.error("Fallback: Oops, unable to copy", err);

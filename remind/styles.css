@@ -99,6 +99,11 @@ body {
   border-radius: 5px;
 }
 
+.tag-button-selected {
+  background-color: #333;
+  color: #f0f0f0;
+}
+
 /* Styling for action buttons */
 .action-button {
   padding: 8px 16px;
@@ -118,23 +123,10 @@ body {
   color: white;
 }
 
-/* Modal wrapper */
-.modal-wrapper {
-  /* Existing styles remain unchanged */
-}
-
 /* Add Entry Form */
 #addEntryForm {
   background-color: white;
   /* Rest of the styles remain unchanged */
-}
-
-.close-btn {
-  /* Existing styles remain unchanged */
-}
-
-.wide-input {
-  /* Existing styles remain unchanged */
 }
 
 /* Footer styling */
