@@ -4,7 +4,7 @@ let entries = [
     title: "Remind",
     description: "This is a reminder",
     link: "",
-    tags: [],
+    tags: ['tag1', 'tag2', 'tag3, with commas', 'tag 4'],
     i: 0,
   },
 ];
@@ -130,7 +130,8 @@ function fromBinary(encoded) {
 
 async function fetchFromPublicGoogleSheet(spreadsheetId) {
   // const response = await fetch(`https://spreadsheets.google.com/feeds/cells/${spreadsheetId}/${sheetId}/public/full?alt=json`);
-  const response = await fetch(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?exportFormat=csv`);
-  const csv = await response.text();
-  return csvToJsonArray(csv);
+  // const response = await fetch(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?exportFormat=csv`);
+  const response = await fetch(`https://spreadsheets.google.com/feeds/list/${spreadsheetId}/od6/public/values?alt=json`);
+  const json = await response.json();
+  return json;
 }

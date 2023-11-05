@@ -24,13 +24,27 @@ function showEntry(index) {
   const displayEntry = allEntries[index];
   console.log("displaying entry: " + JSON.stringify(displayEntry));
 
-  const div = document.getElementById("displayEntry");
-  div.style.display = "block";
   document.getElementById("displayEntryTitle").innerText = displayEntry.title;
   document.getElementById("displayEntryDescription").innerText =
     displayEntry.description;
   document.getElementById("displayEntryDate").innerText = displayEntry.ts;
   document.getElementById("displayEntryIndex").innerText = `[${index}]`;
+
+  const tagsDiv = document.getElementById("displayEntryTags");
+
+  displayEntry.tags.forEach(function (tag) {
+    // add <button class="tag-button">example tag</button>
+    const button = document.createElement("button");
+    button.classList.add("tag-button");
+    button.innerText = tag;
+    button.addEventListener("click", function () {
+      addTagFilter(tag);
+    });
+    tagsDiv.appendChild(button);
+  });
+
+  const div = document.getElementById("displayEntry");
+  div.style.display = "block";
 }
 
 // Function to show the Add Entry dialog
@@ -100,11 +114,13 @@ function restoreFromGSheet() {
 
   const sheetId = getId(idOrUrl);
   console.log(`setGSheet - using sheet ID: ${sheetId}`);
-  fetchFromPublicGoogleSheet(sheetId).then(newEntries => {
-    console.log(newEntries);
-  }).catch(e => {
-    console.error('Failed to fetch GSheetData: ', e);
-  });
+  fetchFromPublicGoogleSheet(sheetId)
+    .then((newEntries) => {
+      console.log(newEntries);
+    })
+    .catch((e) => {
+      console.error("Failed to fetch GSheetData: ", e);
+    });
 }
 
 function getId(idOrUrl) {
@@ -121,12 +137,12 @@ function getId(idOrUrl) {
 function pbCopyData() {
   const entries = getEntries();
   // json to csv escaping commas in each field
-  entries.forEach(e => {
-    Object.keys(e).forEach(k => {
-      e[k] = e[k].replace(/,/g, '\\,');
+  entries.forEach((e) => {
+    Object.keys(e).forEach((k) => {
+      e[k] = e[k].replace(/,/g, "\\,");
     });
   });
-  console.log('pbCopyData: ', csv);
+  console.log("pbCopyData: ", csv);
   console.log(csv);
   copyToClipboard(csv);
 }
