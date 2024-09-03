@@ -1,1 +1,41 @@
-Hello world
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>javpla.github.io/link</title>
+    <script>
+        // A function to get query parameters
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // A function to handle redirection based on query parameter
+        function redirect() {
+            const param = getQueryParam('link');
+            let url;
+
+            switch (param) {
+                case '1':
+                    url = 'https://photos.google.com/album/AF1QipPRKn0LU__UN4Yf6hKB-cfEKirP2K88R-bDHPkL';
+                    break;
+                // Add more cases as needed
+                default:
+                    url = './index';
+                    break;
+            }
+
+            if (url) {
+                window.location.href = url;
+            }
+        }
+
+        // Execute the redirect function on page load
+        window.onload = redirect;
+    </script>
+</head>
+<body>
+    Hello world
+</body>
+</html>
