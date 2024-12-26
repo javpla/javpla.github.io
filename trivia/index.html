@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="game-config" class="container">
+    <h1>Trivia Setup</h1>
+    <div class="config-form">
+      <div class="form-group">
+        <label for="player-count">Number of Players:</label>
+        <input type="number" id="player-count" min="2" max="8" value="4">
+      </div>
+      <div id="player-names"></div>
+      <div class="game-info">
+        <p>Total Questions: <span id="question-count">0</span></p>
+      </div>
+      <button id="start-game-btn" class="start-button">Start Game</button>
+    </div>
+  </div>
+
+  <div id="game-container" class="container" style="display: none;">
+    <div class="container">
+      <div class="question">
+        <h2 id="question-text">Question will appear here.</h2>
+        <div class="answers">
+          <div id="answers"></div>
+        </div>
+      </div>
+
+      <div class="game-header">
+        <div class="player-scores">
+          <h2>Scores</h2>
+          <div id="scores"></div>
+        </div>
+      </div>
+
+      <div>
+        <textarea id="info-message" readonly style="width: 100%; height: 100px; resize: vertical;"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="pass-button">Pass</button>
+      </div>
+
+      <script src="game-state.js"></script>
+    </div>
+  </div>
+</body>
+</html>
