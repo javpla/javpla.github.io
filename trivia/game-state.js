@@ -1,119 +1,28 @@
-let players = [];
+const defaultPlayerNames = ["Ida", "Ignacio", "Ada", "Lukas"];
 
 const QuestionTypes = {
   TRUE_FALSE: "TRUE_FALSE",
   NUMBER: "NUMBER",
   ORDER: "ORDER",
-  DECADE: "DECENNIUM",
+  DECADE: "DECADE",
   COLOR: "COLOR",
   OPEN: "OPEN",
 };
 
-// Example data for questions
-const questions = [
-  {
-    id: 1,
-    type: QuestionTypes.TRUE_FALSE,
-    question: "Which of these animals are mammals?",
-    answers: [
-      { alternative: "Dolphin", correct: true },
-      { alternative: "Snake", correct: false },
-      { alternative: "Elephant", correct: true },
-      { alternative: "Lizard", correct: false },
-      { alternative: "Bat", correct: true },
-      { alternative: "Penguin", correct: false },
-      { alternative: "Whale", correct: true },
-      { alternative: "Crocodile", correct: false },
-      { alternative: "Kangaroo", correct: true },
-    ],
-  },
-  {
-    id: 2,
-    type: QuestionTypes.NUMBER,
-    question: "How old where these artists when they died?",
-    answers: [
-      { alternative: "Kurt Cobain", correct: 27 },
-      { alternative: "Jimi Hendrix", correct: 27 },
-      { alternative: "Janis Joplin", correct: 27 },
-      { alternative: "Jim Morrison", correct: 27 },
-      { alternative: "Amy Winehouse", correct: 27 },
-      { alternative: "Michael Jackson", correct: 50 },
-      { alternative: "Prince", correct: 57 },
-      { alternative: "David Bowie", correct: 69 },
-      { alternative: "John Lennon", correct: 40 },
-    ],
-  },
-  {
-    id: 3,
-    type: QuestionTypes.ORDER,
-    question: "Rank these planets by their distance from the Sun. 1 is closest",
-    answers: [
-      { alternative: "Mercury", correct: 1 },
-      { alternative: "Venus", correct: 2 },
-      { alternative: "Neptune", correct: 8 },
-      { alternative: "Mars", correct: 4 },
-      { alternative: "Earth", correct: 3 },
-      { alternative: "Pluto", correct: 9 },
-      { alternative: "Uranus", correct: 7 },
-      { alternative: "Jupiter", correct: 5 },
-      { alternative: "Saturn", correct: 6 },
-    ],
-  },
-  {
-    id: 4,
-    type: QuestionTypes.DECADE,
-    question: "In which decade did these events occur?",
-    answers: [
-      { alternative: "Moon Landing", correct: 1960 },
-      { alternative: "French Revolution", correct: 1780 },
-      { alternative: "Fall of the Berlin Wall", correct: 1980 },
-      { alternative: "Discovery of America", correct: 1490 },
-      { alternative: "World War I", correct: 1910 },
-      { alternative: "World War II", correct: 1930 },
-      { alternative: "Industrial Revolution", correct: 1760 },
-      { alternative: "Renaissance", correct: 1400 },
-      { alternative: "Printing Press Invention", correct: 1440 },
-    ],
-  },
-  {
-    id: 5,
-    type: QuestionTypes.COLOR,
-    question: "What color is typically associated with these things?",
-    answers: [
-      { alternative: "Stop signs", correct: "red" },
-      { alternative: "The sky on a clear day", correct: "blue" },
-      { alternative: "Bananas", correct: "yellow" },
-      { alternative: "Grass", correct: "green" },
-      { alternative: "The sun", correct: "yellow" },
-      { alternative: "Eggplants", correct: "purple" },
-      { alternative: "Oranges", correct: "orange" },
-      { alternative: "Snow", correct: "white" },
-      { alternative: "Coal", correct: "black" },
-    ],
-  },
-  {
-    id: 6,
-    type: QuestionTypes.OPEN,
-    question: "What is the capital of...",
-    answers: [
-      { alternative: "France", correct: "Paris" },
-      { alternative: "Germany", correct: "Berlin" },
-      { alternative: "Spain", correct: "Madrid" },
-      { alternative: "Italy", correct: "Rome" },
-      { alternative: "Japan", correct: "Tokyo" },
-      { alternative: "Canada", correct: "Ottawa" },
-      { alternative: "Australia", correct: "Canberra" },
-      { alternative: "Moscow", correct: "Russia" },
-      { alternative: "Beijing", correct: "China" },
-    ],
-  },
-];
+// make sure to import questions.js with the following format:
+// const questions: Array<{
+//   id: 1,
+//   type: QuestionTypes.TRUE_FALSE,
+//   question: "Which of these animals are mammals?",
+//   answers: Array<{ alternative: string, correct: boolean | string }>,
+// }>
 
 const gameState = {
   currentQuestionIndex: 0,
   currentPlayerIndex: 0,
   roundActive: true,
   disabledAnswers: new Set(),
+  players: [],
 };
 
 function initializeGameConfig() {
@@ -134,8 +43,8 @@ function initializeGameConfig() {
       const input = document.createElement('div');
       input.className = 'player-name-input';
       input.innerHTML = `
-        <label for="player-${i}">Player ${i + 1} Name:</label>
-        <input type="text" id="player-${i}" value="Player ${i + 1}">
+        <label for="player-${i}">Player ${i + 1}:</label>
+        <input type="text" id="player-${i}" value="${defaultPlayerNames[i%defaultPlayerNames.length]}" placeholder="Name ${i + 1}">
       `;
       playerNamesDiv.appendChild(input);
     }
@@ -149,9 +58,10 @@ function initializeGameConfig() {
   // Handle game start
   startGameBtn.addEventListener('click', () => {
     const playerInputs = document.querySelectorAll('#player-names input');
-    players = Array.from(playerInputs).map(input => ({
+    gameState.players = Array.from(playerInputs).map(input => ({
       name: input.value.trim() || input.placeholder,
       score: 0,
+      roundScores: [],
       isEliminated: false
     }));
     
@@ -165,14 +75,28 @@ function initializeGameConfig() {
 }
 
 function updateUI() {
-  // Update the scores display to use a table with current player indicator
+  console.log(gameState);
   const scoresDiv = document.getElementById("scores");
   scoresDiv.innerHTML = `
     <table>
+      <thead>
+        <tr>
+          <th>Player</th>
+          ${Array(gameState.currentQuestionIndex + 1)
+            .fill()
+            .map((_, i) => `<th>${i + 1}.</th>`)
+            .join('')}
+          <th>Total</th>
+        </tr>
+      </thead>
       <tbody>
-        ${players.map((player, index) => `
+        ${gameState.players.map((player, index) => `
           <tr>
             <td>${player.name} ${index === gameState.currentPlayerIndex ? '👈' : ''}</td>
+            ${Array(gameState.currentQuestionIndex + 1)
+              .fill()
+              .map((_, i) => `<td>${player.roundScores[i]}</td>`)
+              .join('')}
             <td>${player.score}</td>
           </tr>
         `).join("")}
@@ -182,7 +106,7 @@ function updateUI() {
 
   const questionText = document.getElementById("question-text");
   const currentQuestion = questions[gameState.currentQuestionIndex];
-  questionText.innerText = currentQuestion.question;
+  questionText.innerText = `${gameState.currentQuestionIndex + 1}. ${currentQuestion.question}`;
 
   const answersDiv = document.getElementById("answers");
   answersDiv.innerHTML = currentQuestion.answers
@@ -200,8 +124,15 @@ function updateUI() {
 }
 
 function startGame() {
-  players.forEach((player) => {
+  // Shuffle questions
+  for (let i = questions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [questions[i], questions[j]] = [questions[j], questions[i]];
+  }
+
+  gameState.players.forEach((player) => {
     player.score = 0;
+    player.roundScores = [0];
     player.isEliminated = false;
   });
   gameState.currentQuestionIndex = 0;
@@ -213,6 +144,13 @@ function createTrueFalseModal(question, callback) {
   const modal = document.createElement('div');
   modal.className = 'modal';
   
+  // Close modal when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+  
   const content = document.createElement('div');
   content.className = 'modal-content';
   
@@ -223,14 +161,14 @@ function createTrueFalseModal(question, callback) {
   buttonContainer.className = 'modal-buttons';
   
   const trueButton = document.createElement('button');
-  trueButton.textContent = 'True';
+  trueButton.textContent = '👍';
   trueButton.onclick = () => {
     document.body.removeChild(modal);
     callback(true);
   };
   
   const falseButton = document.createElement('button');
-  falseButton.textContent = 'False';
+  falseButton.textContent = '👎';
   falseButton.onclick = () => {
     document.body.removeChild(modal);
     callback(false);
@@ -249,6 +187,13 @@ function createColorModal(question, callback) {
   const colors = ['red', 'blue', 'yellow', 'green', 'purple', 'orange', 'white', 'black'];
   const modal = document.createElement('div');
   modal.className = 'modal';
+  
+  // Close modal when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
   
   const content = document.createElement('div');
   content.className = 'modal-content';
@@ -278,9 +223,57 @@ function createColorModal(question, callback) {
   document.body.appendChild(modal);
 }
 
+function createNumberInputModal(question, callback) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  
+  // Close modal when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+  
+  const content = document.createElement('div');
+  content.className = 'modal-content';
+  
+  const text = document.createElement('p');
+  text.textContent = question;
+  
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'number-input';
+  
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'modal-buttons';
+  
+  const submitButton = document.createElement('button');
+  submitButton.textContent = 'Submit';
+  submitButton.className = 'submit-button';
+  submitButton.onclick = () => {
+    document.body.removeChild(modal);
+    callback(input.value);
+  };
+  
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      submitButton.click();
+    }
+  });
+  
+  buttonContainer.appendChild(submitButton);
+  content.appendChild(text);
+  content.appendChild(input);
+  content.appendChild(buttonContainer);
+  modal.appendChild(content);
+  
+  document.body.appendChild(modal);
+  input.focus();
+}
+
 function selectAnswer(answerIndex) {
   const currentQuestion = questions[gameState.currentQuestionIndex];
-  const currentPlayer = players[gameState.currentPlayerIndex];
+  const currentPlayer = gameState.players[gameState.currentPlayerIndex];
   const selectedAnswer = currentQuestion.answers[answerIndex];
   const button = document.querySelector(`#answers button:nth-child(${answerIndex + 1})`);
 
@@ -310,30 +303,39 @@ function selectAnswer(answerIndex) {
       return;
       
     case QuestionTypes.NUMBER:
-      // For NUMBER type, allow small margin of error (±2)
-      const guess = parseInt(prompt("Enter your guess:"));
-      isCorrect = Math.abs(guess - selectedAnswer.correct) <= 2;
-      handleAnswer(isCorrect, button, currentPlayer);
-      break;
+      createNumberInputModal(
+        `How old was ${selectedAnswer.alternative}?`,
+        (answer) => {
+          isCorrect = Math.abs(parseInt(answer) - selectedAnswer.correct) <= 2;
+          handleAnswer(isCorrect, button, currentPlayer);
+        }
+      );
+      return;
       
     case QuestionTypes.ORDER:
-      // For ORDER type, check if player's guess matches the correct order
-      const orderGuess = parseInt(prompt("Enter position (1-9):"));
-      isCorrect = orderGuess === selectedAnswer.correct;
-      handleAnswer(isCorrect, button, currentPlayer);
-      break;
+      createNumberInputModal(
+        `Enter position (1-9) for ${selectedAnswer.alternative}:`,
+        (answer) => {
+          isCorrect = parseInt(answer) === selectedAnswer.correct;
+          handleAnswer(isCorrect, button, currentPlayer);
+        }
+      );
+      return;
       
     case QuestionTypes.DECADE:
-      // For DECADE type, allow answers within the same decade
-      const yearGuess = parseInt(prompt("Enter the decade (e.g., 1960):"));
-      isCorrect = Math.floor(yearGuess / 10) === Math.floor(selectedAnswer.correct / 10);
-      handleAnswer(isCorrect, button, currentPlayer);
-      break;
+      createNumberInputModal(
+        `Enter the decade (e.g., 1990) for ${selectedAnswer.alternative}:`,
+        (answer) => {
+          isCorrect = Math.floor(parseInt(answer) / 10) === Math.floor(selectedAnswer.correct / 10);
+          handleAnswer(isCorrect, button, currentPlayer);
+        }
+      );
+      return;
       
     case QuestionTypes.OPEN:
-      // For OPEN type, case-insensitive string comparison
-      const answer = prompt("Enter your answer:").trim().toLowerCase();
-      isCorrect = answer === selectedAnswer.correct.toLowerCase();
+      const answer = prompt("Enter your answer:");
+      if (answer === null) return; // Cancel clicked
+      isCorrect = answer.trim().toLowerCase() === selectedAnswer.correct.toLowerCase();
       handleAnswer(isCorrect, button, currentPlayer);
       break;
   }
@@ -345,64 +347,79 @@ function selectAnswer(answerIndex) {
 function handleAnswer(isCorrect, button, currentPlayer) {
   button.classList.add(isCorrect ? 'correct' : 'incorrect');
   if (isCorrect) {
-    updateInfoBox(`Right answer!`);
-    currentPlayer.score++;
+    updateInfoBox(`${currentPlayer.name} answered correctly: ${button.textContent} ✅`);
+    currentPlayer.roundScores[gameState.currentQuestionIndex]++;
   } else {
-    updateInfoBox(`Wrong answer!`);
+    updateInfoBox(`${currentPlayer.name} answered incorrectly: ${button.textContent} ❌`);
     currentPlayer.isEliminated = true;
+    currentPlayer.roundScores[gameState.currentQuestionIndex] = 0;
   }
-  nextTurn();
+
+  // Check if all answers have been selected
+  const currentQuestion = questions[gameState.currentQuestionIndex];
+  if (gameState.disabledAnswers.size >= currentQuestion.answers.length) {
+    endRound();
+  } else {
+    nextTurn();
+  }
 }
 
 function nextTurn() {
   // Find next non-eliminated player
   let nextIndex = gameState.currentPlayerIndex;
   do {
-    nextIndex = (nextIndex + 1) % players.length;
-  } while (players[nextIndex].isEliminated && nextIndex !== gameState.currentPlayerIndex);
+    nextIndex = (nextIndex + 1) % gameState.players.length;
+  } while (gameState.players[nextIndex].isEliminated && nextIndex !== gameState.currentPlayerIndex);
 
   gameState.currentPlayerIndex = nextIndex;
 
-  const activePlayers = players.filter((player) => !player.isEliminated);
+  const activePlayers = gameState.players.filter((player) => !player.isEliminated);
   if (activePlayers.length === 0) {
     endRound();
     return;
   }
 
   // Get the current player AFTER updating the index
-  const currentPlayer = players[gameState.currentPlayerIndex];
+  const currentPlayer = gameState.players[gameState.currentPlayerIndex];
   updateInfoBox(`${currentPlayer.name}'s turn!`);
   updateUI();
 }
 
 function passTurn() {
-  const currentPlayer = players[gameState.currentPlayerIndex];
+  const currentPlayer = gameState.players[gameState.currentPlayerIndex];
   currentPlayer.isEliminated = true;
+  currentPlayer.score += currentPlayer.roundScores[gameState.currentQuestionIndex];
   nextTurn();
 }
 
 function endRound() {
   updateInfoBox("Round ended!");
-  players.forEach((player) => {
-    console.log(`${player.name}: ${player.score}`);
+
+  // Make round scores permanent for non-eliminated players
+  gameState.players.forEach((player) => {
+    if (!player.isEliminated) {
+      player.score += player.roundScores[gameState.currentQuestionIndex];
+      player.roundScores.push(0);
+    }
+    player.roundScores.push(0);
+    player.isEliminated = false;
   });
 
   gameState.currentQuestionIndex++;
   if (gameState.currentQuestionIndex >= questions.length) {
     updateInfoBox("Game over!");
+    document.querySelectorAll('button').forEach(button => {
+      button.disabled = true;
+    });
     return;
   }
   gameState.disabledAnswers.clear();
-
-  // Reset all players' elimination status
-  players.forEach((player) => (player.isEliminated = false));
   
   // Set starting player to be the next player from last round's starter
-  gameState.currentPlayerIndex = gameState.currentQuestionIndex % players.length - 1;
+  gameState.currentPlayerIndex = gameState.currentQuestionIndex % gameState.players.length - 1;
   
   updateInfoBox(`New round!`);
-  // Update UI and show first player's turn
-  nextTurn(); // Using nextTurn instead of just updateUI to properly set first player
+  nextTurn();
 }
 
 function updateInfoBox(message) {
