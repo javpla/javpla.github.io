@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recetas README Viewer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; background: #f9f9f9; }
+    #content { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px #0001; }
+    pre, code { background: #f5f5f5; border-radius: 4px; }
+    h1,h2,h3 { margin-top: 2em; }
+    a { color: #0366d6; }
+  </style>
+  <!-- Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div id="content">Loading README.md…</div>
+  <script>
+    // Compute the path to README.md relative to this file
+    fetch('./README.md')
+      .then(response => {
+        if (!response.ok) throw new Error('README.md not found');
+        return response.text();
+      })
+      .then(md => {
+        document.getElementById('content').innerHTML = marked.parse(md);
+      })
+      .catch(err => {
+        document.getElementById('content').textContent = 'Error loading README.md: ' + err;
+      });
+  </script>
+</body>
+</html>
