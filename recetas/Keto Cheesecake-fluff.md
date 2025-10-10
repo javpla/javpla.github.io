@@ -19,4 +19,3 @@ Detta är en snabb och ljuvligt krämig fluff som smakar som en sommrig cheeseca
 3. **Vispa Ihop:** Vispa samman allt tills det är väl blandat och har en jämn konsistens.
 4. **Kyl:** Förvara fluffet i kylskåpet i minst **30 minuter** för att det ska sätta sig och bli kallt och gott.
 5. **Servera:** Portionera upp fluffet i skålar eller glas och toppa med t.ex. bär.
-6. 
