@@ -1,6 +1,6 @@
 # Recetas
 
-## Indice 
+## Índice 
 
 - [Keto Cheesecake-fluff](Keto%20Cheesecake-fluff.md)
 - [Keto Chiapudding](Keto%20Chiapudding.md)
