@@ -2,33 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Recetas README Viewer</title>
+  <title>Recetas</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; background: #f9f9f9; }
     #content { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px #0001; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 1em 0; }
+    a { color: #0366d6; text-decoration: underline; cursor: pointer; }
+    .back { margin-bottom: 1em; display: inline-block; }
     pre, code { background: #f5f5f5; border-radius: 4px; }
-    h1,h2,h3 { margin-top: 2em; }
-    a { color: #0366d6; }
   </style>
-  <!-- Marked.js for Markdown parsing -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-  <div id="content">Loading README.md…</div>
+  <div id="content">Loading recipes…</div>
   <script>
-    // Compute the path to README.md relative to this file
-    fetch('./README.md')
-      .then(response => {
-        if (!response.ok) throw new Error('README.md not found');
-        return response.text();
-      })
-      .then(md => {
-        document.getElementById('content').innerHTML = marked.parse(md);
-      })
-      .catch(err => {
-        document.getElementById('content').textContent = 'Error loading README.md: ' + err;
+    const repoOwner = "javpla";
+    const repoName = "javpla.github.io";
+    const recetasPath = "recetas";
+    const branch = "main"; // If deploying from a different branch, change this
+
+    // Helper to get the folder contents from GitHub API
+    async function fetchRecipeList() {
+      // Use the default branch (likely main or master)
+      // We'll try main first, fallback to master if 404
+      let apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${recetasPath}?ref=${branch}`;
+      let resp = await fetch(apiUrl);
+      if (resp.status === 404) {
+        // fallback to master
+        apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${recetasPath}?ref=master`;
+        resp = await fetch(apiUrl);
+      }
+      if (!resp.ok) throw new Error("Could not fetch recipes list.");
+      return resp.json();
+    }
+
+    // Render the list of recipes (md files)
+    function renderList(files) {
+      const recipes = files
+        .filter(f => f.type === "file" && f.name.endsWith(".md") && f.name !== "README.md")
+        .sort((a, b) => a.name.localeCompare(b.name));
+      if (recipes.length === 0) {
+        document.getElementById("content").innerHTML = "<p>No recipes found.</p>";
+        return;
+      }
+      let listHtml = "<h2>Recetas</h2><ul>";
+      recipes.forEach(file => {
+        const name = file.name.replace(/\.md$/, "");
+        listHtml += `<li><a href="#${encodeURIComponent(file.name)}">${name}</a></li>`;
       });
+      listHtml += "</ul>";
+      document.getElementById("content").innerHTML = listHtml;
+    }
+
+    // Fetch and render a Markdown file
+    async function renderRecipe(filename) {
+      document.getElementById("content").innerHTML = "Cargando receta…";
+      // Raw file URL on GitHub Pages
+      const rawUrl = `${filename}`;
+      try {
+        const resp = await fetch(rawUrl);
+        if (!resp.ok) throw new Error("No se pudo cargar la receta.");
+        const md = await resp.text();
+        document.getElementById("content").innerHTML =
+          `<button class="back" onclick="window.location.hash=''">&larr; Volver a la lista</button>` +
+          marked.parse(md);
+      } catch (e) {
+        document.getElementById("content").innerHTML = 
+          `<button class="back" onclick="window.location.hash=''">&larr; Volver a la lista</button>` +
+          `<p>Error cargando la receta: ${e.message}</p>`;
+      }
+    }
+
+    // Router
+    function route() {
+      const hash = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+      if (!hash) {
+        // List
+        fetchRecipeList()
+          .then(renderList)
+          .catch(e => { document.getElementById("content").textContent = e.message; });
+      } else {
+        // Show recipe
+        renderRecipe(hash);
+      }
+    }
+
+    window.addEventListener('hashchange', route);
+    route();
   </script>
 </body>
 </html>
