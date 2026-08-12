@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>Twister Canvas Edition</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      touch-action: none; /* Prevent scroll on touch */
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      /* Background color is dynamically updated in JS. Set a fallback */
+      background-color: #E53935; 
+      transition: background-color 0s; /* Instant color snap during spin looks better */
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="twisterCanvas"></canvas>
+
+  <script>
+    // Polyfill for roundRect just in case of older browser environments
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + r, y, r);
+        return this;
+      };
+    }
+
+    const canvas = document.getElementById('twisterCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // --- CONFIGURATION ---
+    const CONFIG = {
+      spinDuration: 1500,        // Time in milliseconds for a complete spin
+      spinRevolutions: 3,        // Number of full cycles through all limbs/colors
+      easePower: 2,              // 2 = quadratic slowdown (snappy), 3 = cubic (softer)
+      mutedColorRatio: 0.8,      // Saturation during spin (1.0 = fully saturated, 0.0 = gray)
+      spinColorFadeSpeed: 0.3,   // How quickly colors blend while spinning (0.1 = slow/smooth, 1.0 = instant/flashy)
+      settleColorFadeSpeed: 0.1, // How quickly saturation returns after settling
+      limbAnimSpeed: 0.15        // How fast limbs scale up/down
+    };
+
+    // Saturated Twister Colors (RGB)
+    const SATURATED_COLORS = [
+      [229, 57, 53],   // Red #E53935
+      [30, 136, 229],  // Blue #1E88E5
+      [253, 216, 53],  // Yellow #FDD835
+      [67, 160, 71]    // Green #43A047
+    ];
+
+    // Dynamically calculate muted colors based on CONFIG
+    const MUTED_COLORS = SATURATED_COLORS.map(c => {
+      // Calculate perceptual luminance to use as the baseline gray
+      const gray = (c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114);
+      return [
+        gray + (c[0] - gray) * CONFIG.mutedColorRatio,
+        gray + (c[1] - gray) * CONFIG.mutedColorRatio,
+        gray + (c[2] - gray) * CONFIG.mutedColorRatio
+      ];
+    });
+
+    // Current State
+    let activeLimbIndex = 0;
+    let activeColorIndex = 0;
+
+    // Background color state for smooth fading
+    let currentBgColor = { r: 229, g: 57, b: 53 };
+
+    // Visual states for smooth scaling/fading of each of the 4 limbs
+    let limbVisuals = [
+      { scale: 1, opacity: 1 },
+      { scale: 0.5, opacity: 0.4 },
+      { scale: 0.5, opacity: 0.4 },
+      { scale: 0.5, opacity: 0.4 }
+    ];
+
+    // Animation settings
+    let ANIM = {
+      active: false,
+      startTime: 0,
+      startLimb: 0,
+      targetLimb: 0,
+      startColor: 0,
+      targetColor: 0
+    };
+
+    function drawHand(ctx, isLeft) {
+      ctx.save();
+      if (isLeft) ctx.scale(-1, 1);
+      
+      ctx.fillStyle = '#FFFFFF';
+      
+      // Palm (Minimalistic rounded box)
+      ctx.beginPath();
+      ctx.roundRect(-35, -15, 70, 70, 12);
+      ctx.fill();
+
+      // Thumb (Angular, protruding left for right hand)
+      ctx.beginPath();
+      ctx.roundRect(-65, 10, 40, 22, 10);
+      ctx.fill();
+
+      // Fingers (Straight rectangles)
+      ctx.beginPath(); ctx.roundRect(-32, -75, 16, 70, 8); ctx.fill(); // Index
+      ctx.beginPath(); ctx.roundRect(-12, -85, 16, 80, 8); ctx.fill(); // Middle
+      ctx.beginPath(); ctx.roundRect(8, -80, 16, 75, 8); ctx.fill();  // Ring
+      ctx.beginPath(); ctx.roundRect(28, -55, 16, 50, 8); ctx.fill();  // Pinky
+
+      // Nails (Subtle gray, unequivocally marking the back of the hand)
+      ctx.fillStyle = '#E2E8F0';
+      ctx.beginPath(); ctx.roundRect(-60, 14, 12, 14, 4); ctx.fill(); // Thumb nail
+      ctx.beginPath(); ctx.roundRect(-28, -71, 8, 14, 3); ctx.fill(); // Index nail
+      ctx.beginPath(); ctx.roundRect(-8, -81, 8, 14, 3); ctx.fill();  // Middle nail
+      ctx.beginPath(); ctx.roundRect(12, -76, 8, 14, 3); ctx.fill();  // Ring nail
+      ctx.beginPath(); ctx.roundRect(32, -51, 8, 12, 3); ctx.fill();  // Pinky nail
+      
+      ctx.restore();
+    }
+
+    function drawFoot(ctx, isLeft) {
+      ctx.save();
+      if (isLeft) ctx.scale(-1, 1);
+      
+      // Sole
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.moveTo(-20, -10);
+      ctx.bezierCurveTo(-30, 40, -15, 80, 0, 80);
+      ctx.bezierCurveTo(15, 80, 30, 40, 20, -10);
+      ctx.bezierCurveTo(20, -35, -20, -35, -20, -10);
+      ctx.fill();
+
+      // Helper for toes + nails
+      const drawToe = (cx, cy, rx, ry, nx, ny, nr, rot = 0) => {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rot);
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#E2E8F0';
+        ctx.beginPath(); ctx.ellipse(nx, ny, nr, nr*0.8, 0, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      };
+
+      // Toes (Big toe on the left for right foot)
+      drawToe(-22, -45, 14, 18, 0, -6, 7, -0.1); // Big toe
+      drawToe(0, -50, 9, 13, 0, -5, 5, 0);       // Toe 2
+      drawToe(18, -45, 8, 11, 0, -4, 4, 0.1);    // Toe 3
+      drawToe(33, -35, 7, 10, 0, -4, 3.5, 0.2);  // Toe 4
+      drawToe(45, -22, 6, 8, 0, -3, 3, 0.3);     // Pinky toe
+
+      ctx.restore();
+    }
+
+    function renderLoop(timestamp) {
+      const w = canvas.width;
+      const h = canvas.height;
+      
+      // Setup the 2x2 grid mapping
+      // 0: Top Left (Left Hand)
+      // 1: Top Right (Right Hand)
+      // 2: Bottom Right (Right Foot)
+      // 3: Bottom Left (Left Foot)
+      // Placed clockwise for a natural spinning path
+      const positions = [
+        { x: w * 0.25, y: h * 0.25, type: 'hand', isLeft: true },
+        { x: w * 0.75, y: h * 0.25, type: 'hand', isLeft: false },
+        { x: w * 0.75, y: h * 0.75, type: 'foot', isLeft: false },
+        { x: w * 0.25, y: h * 0.75, type: 'foot', isLeft: true }
+      ];
+
+      // Handle Animation Progress
+      if (ANIM.active) {
+        let elapsed = timestamp - ANIM.startTime;
+        let progress = Math.min(elapsed / CONFIG.spinDuration, 1);
+        
+        // Use configured easing power
+        let ease = 1 - Math.pow(1 - progress, CONFIG.easePower);
+
+        let virtLimb = ANIM.startLimb + (ANIM.targetLimb - ANIM.startLimb) * ease;
+        let virtColor = ANIM.startColor + (ANIM.targetColor - ANIM.startColor) * ease;
+
+        activeLimbIndex = Math.round(virtLimb) % 4;
+        activeColorIndex = Math.round(virtColor) % 4;
+
+        if (progress >= 1) ANIM.active = false;
+      }
+
+      // Smoothly Lerp color to target to avoid stroboscopic effect
+      let targetColorSet = ANIM.active ? MUTED_COLORS : SATURATED_COLORS;
+      let targetColor = targetColorSet[activeColorIndex];
+      let fadeSpeed = ANIM.active ? CONFIG.spinColorFadeSpeed : CONFIG.settleColorFadeSpeed;
+      
+      currentBgColor.r += (targetColor[0] - currentBgColor.r) * fadeSpeed;
+      currentBgColor.g += (targetColor[1] - currentBgColor.g) * fadeSpeed;
+      currentBgColor.b += (targetColor[2] - currentBgColor.b) * fadeSpeed;
+      
+      document.body.style.backgroundColor = `rgb(${Math.round(currentBgColor.r)}, ${Math.round(currentBgColor.g)}, ${Math.round(currentBgColor.b)})`;
+
+      // Smoothly Lerp visual properties
+      for (let i = 0; i < 4; i++) {
+        let targetScale = (i === activeLimbIndex) ? 1.3 : 0.45;
+        let targetOpacity = (i === activeLimbIndex) ? 1.0 : 0.3;
+        
+        limbVisuals[i].scale += (targetScale - limbVisuals[i].scale) * CONFIG.limbAnimSpeed;
+        limbVisuals[i].opacity += (targetOpacity - limbVisuals[i].opacity) * CONFIG.limbAnimSpeed;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      for (let i = 0; i < 4; i++) {
+        let pos = positions[i];
+        let vis = limbVisuals[i];
+
+        ctx.save();
+        ctx.translate(pos.x, pos.y);
+        
+        // Scale responsively based on screen size so it always fits
+        let baseScale = Math.min(w, h) / 600; 
+        ctx.scale(baseScale * vis.scale, baseScale * vis.scale);
+        
+        ctx.globalAlpha = vis.opacity;
+        
+        // Add drop shadow to the highlighted limb
+        if (vis.opacity > 0.5) {
+          ctx.shadowColor = 'rgba(0,0,0,0.3)';
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetY = 10;
+        }
+
+        if (pos.type === 'hand') drawHand(ctx, pos.isLeft);
+        else drawFoot(ctx, pos.isLeft);
+        
+        ctx.restore();
+      }
+
+      // Check if we need to keep rendering (either actively spinning or easing scales/colors)
+      let settling = false;
+      for (let i = 0; i < 4; i++) {
+        let targetScale = (i === activeLimbIndex) ? 1.3 : 0.45;
+        if (Math.abs(limbVisuals[i].scale - targetScale) > 0.01) settling = true;
+      }
+      
+      // Keep animating if color is still fading
+      if (Math.abs(currentBgColor.r - targetColor[0]) > 0.5 || 
+          Math.abs(currentBgColor.g - targetColor[1]) > 0.5 || 
+          Math.abs(currentBgColor.b - targetColor[2]) > 0.5) {
+        settling = true;
+      }
+
+      if (ANIM.active || settling) {
+        requestAnimationFrame(renderLoop);
+      }
+    }
+
+    function roll() {
+      // Don't restart spin if already spinning
+      if (ANIM.active) return;
+
+      let newLimbIndex, newColorIndex;
+      do {
+        newLimbIndex = Math.floor(Math.random() * 4);
+        newColorIndex = Math.floor(Math.random() * 4);
+      } while (newLimbIndex === activeLimbIndex && newColorIndex === activeColorIndex);
+
+      let spins = CONFIG.spinRevolutions;
+      
+      let diffLimb = (newLimbIndex - activeLimbIndex + 4) % 4;
+      ANIM.startLimb = activeLimbIndex;
+      ANIM.targetLimb = activeLimbIndex + (spins * 4) + diffLimb;
+
+      let diffColor = (newColorIndex - activeColorIndex + 4) % 4;
+      ANIM.startColor = activeColorIndex;
+      ANIM.targetColor = activeColorIndex + (spins * 4) + diffColor;
+
+      ANIM.startTime = performance.now();
+      ANIM.active = true;
+      
+      requestAnimationFrame(renderLoop);
+    }
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      // Trigger a render pass on resize
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Event Listeners
+    window.addEventListener('resize', resize);
+    window.addEventListener('pointerdown', roll); // Handles both mouse clicks and touch robustly
+
+    // Setup Initial State
+    activeLimbIndex = Math.floor(Math.random() * 4);
+    activeColorIndex = Math.floor(Math.random() * 4);
+    
+    // Snap visual state to match initial
+    for(let i = 0; i < 4; i++) {
+      limbVisuals[i].scale = (i === activeLimbIndex) ? 1.3 : 0.45;
+      limbVisuals[i].opacity = (i === activeLimbIndex) ? 1.0 : 0.3;
+    }
+    
+    let initSat = SATURATED_COLORS[activeColorIndex];
+    currentBgColor = { r: initSat[0], g: initSat[1], b: initSat[2] };
+    document.body.style.backgroundColor = `rgb(${initSat[0]}, ${initSat[1]}, ${initSat[2]})`;
+    
+    resize();
+  </script>
+</body>
+</html>
