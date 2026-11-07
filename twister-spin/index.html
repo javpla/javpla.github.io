@@ -55,9 +55,9 @@
 
     // --- CONFIGURATION ---
     const CONFIG = {
-      spinDuration: 1500,        // Time in milliseconds for a complete spin
-      spinRevolutions: 3,        // Number of full cycles through all limbs/colors
-      easePower: 2,              // 2 = quadratic slowdown (snappy), 3 = cubic (softer)
+      spinDuration: 1800,        // Time in milliseconds for a complete spin
+      spinRevolutions: 2,        // Number of full cycles through all limbs/colors
+      easePower: 2,              // 2 = quadratic (snappy), 3 = cubic (softer). Now controls Ease-In-Out.
       mutedColorRatio: 0.8,      // Saturation during spin (1.0 = fully saturated, 0.0 = gray)
       spinColorFadeSpeed: 0.3,   // How quickly colors blend while spinning (0.1 = slow/smooth, 1.0 = instant/flashy)
       settleColorFadeSpeed: 0.1, // How quickly saturation returns after settling
@@ -101,6 +101,7 @@
     // Animation settings
     let ANIM = {
       active: false,
+      pendingStart: false,
       startTime: 0,
       startLimb: 0,
       targetLimb: 0,
@@ -179,6 +180,9 @@
     }
 
     function renderLoop(timestamp) {
+      // Safeguard: Ensure timestamp is always a valid number to prevent crashes on load
+      timestamp = timestamp || performance.now();
+      
       const w = canvas.width;
       const h = canvas.height;
       
@@ -197,17 +201,33 @@
 
       // Handle Animation Progress
       if (ANIM.active) {
+        // Synchronize the start time on the very first frame to prevent time-origin bugs
+        if (ANIM.pendingStart) {
+          ANIM.startTime = timestamp;
+          ANIM.pendingStart = false;
+        }
+
         let elapsed = timestamp - ANIM.startTime;
-        let progress = Math.min(elapsed / CONFIG.spinDuration, 1);
         
-        // Use configured easing power
-        let ease = 1 - Math.pow(1 - progress, CONFIG.easePower);
+        // Math.max guarantees progress is never negative, Math.min caps it at 1
+        let progress = Math.max(0, Math.min(elapsed / CONFIG.spinDuration, 1));
+        
+        // Use an Ease-In-Out curve so it starts slower and ends slower
+        let ease;
+        if (progress < 0.5) {
+          // Ease-In phase
+          ease = Math.pow(2, CONFIG.easePower - 1) * Math.pow(progress, CONFIG.easePower);
+        } else {
+          // Ease-Out phase
+          ease = 1 - Math.pow(-2 * progress + 2, CONFIG.easePower) / 2;
+        }
 
         let virtLimb = ANIM.startLimb + (ANIM.targetLimb - ANIM.startLimb) * ease;
         let virtColor = ANIM.startColor + (ANIM.targetColor - ANIM.startColor) * ease;
 
-        activeLimbIndex = Math.round(virtLimb) % 4;
-        activeColorIndex = Math.round(virtColor) % 4;
+        // Safe modulo math ensures the index is ALWAYS perfectly bounded between 0 and 3
+        activeLimbIndex = ((Math.round(virtLimb) % 4) + 4) % 4 || 0;
+        activeColorIndex = ((Math.round(virtColor) % 4) + 4) % 4 || 0;
 
         if (progress >= 1) ANIM.active = false;
       }
@@ -279,7 +299,9 @@
       }
     }
 
-    function roll() {
+    function roll(e) {
+      if (e && e.type === 'touchstart') e.preventDefault(); // Prevent accidental scrolling/zooming
+
       // Don't restart spin if already spinning
       if (ANIM.active) return;
 
@@ -299,7 +321,7 @@
       ANIM.startColor = activeColorIndex;
       ANIM.targetColor = activeColorIndex + (spins * 4) + diffColor;
 
-      ANIM.startTime = performance.now();
+      ANIM.pendingStart = true;
       ANIM.active = true;
       
       requestAnimationFrame(renderLoop);
@@ -314,7 +336,8 @@
 
     // Event Listeners
     window.addEventListener('resize', resize);
-    window.addEventListener('pointerdown', roll); // Handles both mouse clicks and touch robustly
+    window.addEventListener('pointerdown', roll); // Handles modern touch/mouse robustly
+    window.addEventListener('touchstart', roll, { passive: false }); // Fallback for older mobile devices
 
     // Setup Initial State
     activeLimbIndex = Math.floor(Math.random() * 4);
